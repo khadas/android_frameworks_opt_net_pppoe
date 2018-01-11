@@ -43,6 +43,7 @@ LOCAL_SHARED_LIBRARIES := \
         libz \
         libcutils \
         libutils \
+        liblog   \
         libbinder \
         libnetutils \
 
