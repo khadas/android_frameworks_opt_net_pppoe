@@ -105,7 +105,7 @@ public class PppoeServiceImpl extends IPppoeManager.Stub {
     private int mWiFiEthernetSwitchMode;  // 0: no switch;
                                           // 1: ethernet pppoe switch to wifi pppoe; 
                                           // 2: wifi pppoe switch to ethernet pppoe;
-    private static final int PPPOE_RETRY_COUNT = 0;
+    private static final int PPPOE_RETRY_COUNT = 1;
     /*-------------------------------------------------------*/
 
     static {
@@ -267,7 +267,8 @@ if (FOR_CMCC_PLATFORM) {
             if(tryCount > 0) {
                 LOG("fail to start pppoe! we will try "+tryCount+" times");
                 tryCount--;
-                handler.postDelayed(runnable, 1000);
+                stopPppoeNative();
+                handler.postDelayed(runnable, 2000);
             }else {
                 LOG("startPppoe() : fail to start pppoe!");
                 machineStopPppoe();
@@ -283,9 +284,11 @@ if (FOR_CMCC_PLATFORM) {
     
     public boolean stopPppoe() {
     	LOG("stopPppoe");
+	tryCount = 0;
     	if (mPppoeState != PppoeManager.PPPOE_STATE_CONNECT &&
     	    mPppoeState != PppoeManager.PPPOE_STATE_CONNECTING) {
             LOG("Already stoped");
+            stopPppoeNative();
             return true;
     	}
 
@@ -334,7 +337,8 @@ if (FOR_CMCC_PLATFORM) {
             if(tryCount > 0) {
                 LOG("fail to start pppoe! we will try "+tryCount+" times");
                 tryCount--;
-                handler.postDelayed(machineRunnable, 1000);
+                stopPppoeNative();
+                handler.postDelayed(machineRunnable, 2000);
             }else {
                 LOG("startPppoe() : fail to start pppoe!");
                 machineStopPppoe();
@@ -356,8 +360,10 @@ if (FOR_CMCC_PLATFORM) {
 
     public boolean machineStopPppoe() {
         LOG("machineStopPppoe");
+        tryCount = 0;
         if (mPppoeState != PppoeManager.PPPOE_STATE_CONNECT &&
             mPppoeState != PppoeManager.PPPOE_STATE_CONNECTING) {
+            stopPppoeNative();
             LOG("Already stoped");
             return true;
         }
@@ -389,6 +395,7 @@ if (FOR_CMCC_PLATFORM) {
             return true;
         }*/
         mSameUserPwd = false;
+        tryCount=PPPOE_RETRY_COUNT;
         
         LOG("mPppoeState = " + mPppoeState);
         if(mPppoeState == PppoeManager.PPPOE_STATE_CONNECT ||
@@ -572,7 +579,7 @@ if (FOR_CMCC_PLATFORM) {
             LOG("pppoe failed: " + errors + ", stop pppoe process.");
             new Thread(new Runnable() {
                public void run() {
-                  machineStopPppoe();
+                  stopPppoeNative();
                }
             }).start();
 

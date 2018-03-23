@@ -135,7 +135,7 @@ static jint stopPppoeNative(JNIEnv* env, jobject clazz)
         goto end;
     }
     
-    for (attempt = 20; attempt > 0;  attempt--) {
+    for (attempt = 30; attempt > 0;  attempt--) {
         property_get("net.pppoe.status", prop, "");
         if (!strcmp(prop, "disconnected")) {
             property_set("ctl.stop", "pppoe_stop");
@@ -145,6 +145,7 @@ static jint stopPppoeNative(JNIEnv* env, jobject clazz)
         usleep(100000);  // 100 ms retry delay
     }
     property_set("ctl.stop", "pppoe_stop");
+    LOGE("stop pppoe failed");
     err = -1;
 end:
     free(prop);
